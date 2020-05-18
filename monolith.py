@@ -15,7 +15,6 @@ connect = MyKafkaConnect(topic='test_topic', group='test_group')
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(
     html.Div([
@@ -30,7 +29,6 @@ app.layout = html.Div(
     ])
 )
 
-from time import sleep
 @app.callback(Output('live-update-text', 'children'),
               [Input('interval-component', 'n_intervals')])
 def update_metrics(n):
@@ -52,7 +50,7 @@ def update_metrics(n):
 def update_graph_live(n):
     # Collect some data
     data = connect.get_graph_data()
-    print('Update graph:', len(data['time']))
+    print('Update graph, data units:', len(data['time']))
 
     # Create the graph with subplots
     fig = plotly.tools.make_subplots(rows=2, cols=1, vertical_spacing=0.2)
