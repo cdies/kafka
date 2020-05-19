@@ -13,9 +13,7 @@ class MyKafkaConnect:
 
         self.conf = {
             'bootstrap.servers': 'localhost:9092',
-            'group.id': group,
-            'auto.offset.reset': 'earliest',
-            'enable.auto.commit': False
+            'group.id': group
         }
 
         # the application needs a maximum of 180 data units
@@ -26,16 +24,18 @@ class MyKafkaConnect:
             'Altitude': deque(maxlen=que_len)
         }
 
-
         consumer = Consumer(self.conf)
         consumer.subscribe([self.topic])
 
+        # download first 180 messges
+        partition = TopicPartition(topic=self.topic, partition=0)
+        low_offset, high_offset = consumer.get_watermark_offsets(partition)
+
         # move offset back on 180 messages
-        partition = self.__get_last_offset(consumer)
-        if partition.offset > que_len:
-            partition.offset = partition.offset - que_len
+        if high_offset > que_len:
+            partition.offset = high_offset - que_len
         else:
-            partition.offset = 0
+            partition.offset = low_offset
 
         # set the moved offset to consumer
         consumer.assign([partition])
@@ -43,24 +43,12 @@ class MyKafkaConnect:
         self.__update_que(consumer)
 
 
-    def __get_last_offset(self, consumer):
-        partition = TopicPartition(topic=self.topic, partition=0)
-
-        # https://docs.confluent.io/current/clients/confluent-kafka-python/#confluent_kafka.Consumer.get_watermark_offsets
-        # get_watermark_offsets returns high offset, (high offset) - 1 = (last message offset)
-        last_offset = consumer.get_watermark_offsets(partition)[1] - 1
-        partition.offset = last_offset
-
-        return partition
-
-
-    # https://docs.confluent.io/current/clients/python.html#asynchronous-commits
+    # https://docs.confluent.io/current/clients/python.html#delivery-guarantees
     def __update_que(self, consumer):
         try:
             while True:
                 msg = consumer.poll(timeout=0.1)
                 if msg is None:
-                    # all messages downloaded
                     break
                 elif msg.error():
                     print('error: {}'.format(msg.error()))
@@ -73,7 +61,7 @@ class MyKafkaConnect:
                     self.data['Latitude'].append(json_data['lat'])
                     self.data['Altitude'].append(json_data['alt'])
                     self.data['time'].append(datetime.datetime.strptime(json_data['time'], '%Y-%m-%d %H:%M:%S.%f'))
-            consumer.commit()
+            
         finally:
             consumer.close()
 
@@ -82,9 +70,9 @@ class MyKafkaConnect:
         consumer = Consumer(self.conf)
         consumer.subscribe([self.topic])  
 
-        # set last offset to consumer
-        partition = self.__get_last_offset(consumer)
-        consumer.assign([partition]) 
+        # update low and high offsets (don't work without it)
+        partition = TopicPartition(topic=self.topic, partition=0)
+        consumer.get_watermark_offsets(partition)
 
         self.__update_que(consumer)
 
@@ -108,4 +96,8 @@ if __name__ == '__main__':
     while True:        
         test = connect.get_graph_data()
 
-        print('messages count:', len(test['time']), test['time'][-1])
+        print('number of messages:', len(test['time']), 
+            'unique:', len(set(test['time'])), 
+            'time:', test['time'][-1].second)
+
+        sleep(1)
