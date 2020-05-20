@@ -13,7 +13,8 @@ class MyKafkaConnect:
 
         self.conf = {
             'bootstrap.servers': 'localhost:9092',
-            'group.id': group
+            'group.id': group,
+            'enable.auto.commit': True,
         }
 
         # the application needs a maximum of 180 data units
@@ -28,17 +29,17 @@ class MyKafkaConnect:
         consumer.subscribe([self.topic])
 
         # download first 180 messges
-        partition = TopicPartition(topic=self.topic, partition=0)
-        low_offset, high_offset = consumer.get_watermark_offsets(partition)
+        self.partition = TopicPartition(topic=self.topic, partition=0)
+        low_offset, high_offset = consumer.get_watermark_offsets(self.partition)
 
         # move offset back on 180 messages
         if high_offset > que_len:
-            partition.offset = high_offset - que_len
+            self.partition.offset = high_offset - que_len
         else:
-            partition.offset = low_offset
+            self.partition.offset = low_offset
 
         # set the moved offset to consumer
-        consumer.assign([partition])
+        consumer.assign([self.partition])
 
         self.__update_que(consumer)
 
@@ -61,8 +62,12 @@ class MyKafkaConnect:
                     self.data['Latitude'].append(json_data['lat'])
                     self.data['Altitude'].append(json_data['alt'])
                     self.data['time'].append(datetime.datetime.strptime(json_data['time'], '%Y-%m-%d %H:%M:%S.%f'))
-            
+
+                    # save local offset
+                    self.partition.offset += 1          
         finally:
+            # Close down consumer to commit final offsets.
+            # It may take some time, that why I save offset locally
             consumer.close()
 
 
@@ -71,8 +76,10 @@ class MyKafkaConnect:
         consumer.subscribe([self.topic])  
 
         # update low and high offsets (don't work without it)
-        partition = TopicPartition(topic=self.topic, partition=0)
-        consumer.get_watermark_offsets(partition)
+        consumer.get_watermark_offsets(self.partition)
+
+        # set local offset
+        consumer.assign([self.partition])
 
         self.__update_que(consumer)
 
@@ -100,4 +107,4 @@ if __name__ == '__main__':
             'unique:', len(set(test['time'])), 
             'time:', test['time'][-1].second)
 
-        sleep(1)
+        sleep(0.1)
