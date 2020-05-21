@@ -5,13 +5,16 @@ import datetime
 from confluent_kafka import Producer
 import json
 from pyorbital.orbital import Orbital
+import os
 
 
 satellite = Orbital('TERRA')
 
 topic = 'test_topic'
 
-producer = Producer({'bootstrap.servers': 'localhost:9092'})
+bootstrap_servers = os.environ['BOOTSTRAP_SERVERS'] 
+
+producer = Producer({'bootstrap.servers': bootstrap_servers})
 
 def acked(err, msg):
     if err is not None:

@@ -1,1 +1,4 @@
-__pycache__
+local_microservices_app/__pycache__
+local_microservices_app/zk-single-kafka-single
+
+docker_microservices_app/zk-single-kafka-single
