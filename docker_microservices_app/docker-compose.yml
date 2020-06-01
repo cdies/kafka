@@ -36,12 +36,36 @@ services:
     depends_on:
       - zoo1
 
-  backend:
+  backend_terra:
     build:
       context: ./backend
     restart: unless-stopped
     environment:
       BOOTSTRAP_SERVERS: "kafka1:19092"
+      TOPIC: "terra_topic"
+      SATELLITE: "TERRA"
+    depends_on:
+      - kafka1
+
+  backend_aqua:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      BOOTSTRAP_SERVERS: "kafka1:19092"
+      TOPIC: "aqua_topic"
+      SATELLITE: "AQUA"
+    depends_on:
+      - kafka1
+
+  backend_aura:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      BOOTSTRAP_SERVERS: "kafka1:19092"
+      TOPIC: "aura_topic"
+      SATELLITE: "AURA"
     depends_on:
       - kafka1
 
@@ -54,4 +78,6 @@ services:
     environment:
       BOOTSTRAP_SERVERS: "kafka1:19092"
     depends_on:
-      - backend
+      - backend_terra
+      - backend_aqua
+      - backend_aura

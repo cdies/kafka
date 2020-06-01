@@ -8,11 +8,11 @@ from pyorbital.orbital import Orbital
 import os
 
 
-satellite = Orbital('TERRA')
-
-topic = 'test_topic'
-
+topic = os.environ['TOPIC'] 
 bootstrap_servers = os.environ['BOOTSTRAP_SERVERS'] 
+s_name = os.environ['SATELLITE']
+
+satellite = Orbital(s_name)
 
 producer = Producer({'bootstrap.servers': bootstrap_servers})
 
