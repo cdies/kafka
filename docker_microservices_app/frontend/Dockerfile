@@ -6,6 +6,6 @@ RUN python -m pip install dash plotly
 
 WORKDIR /app
 
-COPY consumer.py monolith.py ./
+COPY consumer.py graph_display.py ./
 
-CMD ["python", "monolith.py"]
+CMD ["python", "graph_display.py"]

@@ -20,7 +20,7 @@ Dash app source code `https://dash.plotly.com/live-updates`
 
  - start backend `python3 producer.py`
 
- - start frontend `python3 monolith.py`
+ - start frontend `python3 graph_display.py`
 
  - Go to `http://127.0.0.1:8050/` in browser.
 
