@@ -31,3 +31,7 @@ Dash app source code `https://dash.plotly.com/live-updates`
  - start app (all in Docker) `docker-compose  up -d`
 
  - Go to `http://127.0.0.1:8050/` in browser.
+
+<br/><br/>
+---
+[![](https://habrastorage.org/webt/gz/gc/i6/gzgci6pivvdnk-gmj-kepml5q9y.gif)](https://yoomoney.ru/to/4100117863420642)
